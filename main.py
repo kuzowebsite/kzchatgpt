@@ -2,11 +2,11 @@
 from flask import Flask, render_template, request, jsonify
 import openai
 
-openai.api_key = "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"  # Таны API түлхүүрийг энд оруулна уу
+openai.api_key = "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"  # Таны API түлхүүрийг энд оруулна уу
 
 app = Flask(__name__)
 
-@app.route("/index")
+@app.route("/")
 def index():
     return render_template("index.html")
 
