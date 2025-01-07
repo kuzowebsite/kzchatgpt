@@ -3,4 +3,4 @@ rembg
 pillow
 gunicorn
 Flask
-Flask
+openai
