@@ -6,7 +6,7 @@ openai.api_key = "sk-proj-cOgNP_FpMyfl00kGSeR_z8FJ5mJZfrdwH8b1t19RDBJUbTavRRX--K
 
 app = Flask(__name__)
 
-@app.route("/index")
+@app.route("/")
 def index():
     return render_template("index.html")
 
