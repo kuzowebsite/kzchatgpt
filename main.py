@@ -1,5 +1,4 @@
 
-import os
 from flask import Flask, render_template, request, jsonify
 import openai
 
@@ -29,5 +28,4 @@ def chat():
     return jsonify({"error": "No message provided"}), 400
 
 if __name__ == "__main__":
-    port = os.getenv('PORT', 4000)
-    app.run(debug=True, host="0.0.0.0", port=port)
+    app.run(debug=True)
