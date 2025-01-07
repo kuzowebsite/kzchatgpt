@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KZ AI ChatGPT</title>
+  <style>
+    :root[data-theme="light"] {
+      --background: #ffffff;
+      --foreground: #000000;
+      --primary: #ff8c00;
+      --secondary: #f0f0f0;
+      --border: #e0e0e0;
+    }
+
+    :root[data-theme="dark"] {
+      --background: #1a1a1a;
+      --foreground: #ffffff;
+      --primary: #ff8c00;
+      --secondary: #2d2d2d;
+      --border: #3d3d3d;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: var(--background);
+      color: var(--foreground);
+      height: 100vh;
+      margin: 0;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      background-color: var(--secondary);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--foreground);
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    .nav-link {
+      color: var(--foreground);
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+
+    .container {
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      height: 100%;
+    }
+
+    .sidebar {
+      background-color: var(--secondary);
+      border-right: 1px solid var(--border);
+      padding: 1rem;
+    }
+
+    .history {
+      color: #888;
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+
+    .history-item {
+      padding: 0.75rem;
+      margin-bottom: 0.5rem;
+      border-radius: 0.5rem;
+      background-color: var(--background);
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .history-item:hover {
+      background-color: var(--border);
+    }
+
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      padding: 1rem;
+    }
+
+    .messages {
+      flex-grow: 1;
+      overflow-y: auto;
+      margin-bottom: 1rem;
+      padding: 1rem;
+    }
+
+    .message {
+      max-width: 80%;
+      margin-bottom: 1rem;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .user-message {
+      background-color: var(--primary);
+      color: white;
+      margin-left: auto;
+    }
+
+    .bot-message {
+      background-color: var(--secondary);
+      color: var(--foreground);
+    }
+
+    .input-container {
+      position: relative;
+      padding: 1rem;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      border: 1px solid var(--border);
+      background-color: var(--secondary);
+      color: var(--foreground);
+      font-size: 1rem;
+    }
+
+    .send-button {
+      position: absolute;
+      right: 2rem;
+      top: 50%;
+      transform: translateY(-50%);
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 0.25rem;
+      cursor: pointer;
+    }
+
+    .typing-indicator {
+      color: #888;
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <a href="#" class="nav-brand">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/4/4c/Flag_of_Mongolia.svg" alt="Mongolia Flag" style="height: 20px;">
+      KZ AI ChatGPT
+    </a>
+    <div class="nav-links">
+      <a href="/index" class="nav-link" id="nav-home">Home</a>
+      <a href="#" class="nav-link" id="nav-chat-interface">Chat Interface</a>
+      <a href="/settings" class="nav-link" id="nav-settings">Settings</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="sidebar">
+      <div class="history">
+        <h3 id="main-history">History</h3>
+        <div class="history-item">түүх 1</div>
+        <div class="history-item">түүх 2</div>
+        <div class="history-item">түүх 3</div>
+      </div>
+    </div>
+
+    <div class="chat-container">
+      <div class="messages" id="messages"></div>
+      <div class="input-container">
+        <div class="typing-indicator" id="typingIndicator" style="display: none;">
+          <span>******</span><span>******</span><span>******</span>
+        </div>
+        <input type="text" id="userInput" placeholder="Type your message..." />
+        <button class="send-button" id="main-send">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const userInput = document.getElementById("userInput");
+    const messagesContainer = document.getElementById("messages");
+    const typingIndicator = document.getElementById("typingIndicator");
+    const sendButton = document.querySelector(".send-button");
+
+    function applyTheme() {
+      const theme = localStorage.getItem('theme') || 'light';
+      document.documentElement.setAttribute('data-theme', theme);
+    }
+
+    applyTheme();
+
+    document.addEventListener('DOMContentLoaded', applyTheme);
+
+    function setTheme(theme) {
+      localStorage.setItem('theme', theme);
+      document.documentElement.setAttribute('data-theme', theme);
+    }
+
+
+    async function sendMessage() {
+      if (userInput.value.trim()) {
+        const message = userInput.value.trim();
+        appendMessage(message, "user");
+
+        typingIndicator.style.display = "block";
+
+        try {
+          const response = await fetch("/chat", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ message }),
+          });
+
+          const data = await response.json();
+          appendMessage(data.reply, "bot");
+        } catch (error) {
+          console.error("Fetch error:", error);
+          appendMessage("Sorry, something went wrong.", "bot");
+        }
+
+        userInput.value = "";
+        typingIndicator.style.display = "none";
+      }
+    }
+
+    userInput.addEventListener("keypress", function(e) {
+      if (e.key === "Enter") {
+        sendMessage();
+      }
+    });
+
+    sendButton.addEventListener("click", sendMessage);
+
+    function appendMessage(message, sender) {
+      const messageElement = document.createElement("div");
+      messageElement.classList.add("message");
+      messageElement.classList.add(`${sender}-message`);
+      messageElement.innerText = message;
+      messagesContainer.appendChild(messageElement);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+
+
+    function applyLanguage(language) {
+      const langTexts = {
+        en: {
+          home: 'Home',
+          chatInterface: 'Chat Interface',
+          settings: 'Settings',
+          title: 'Welcome to KZ AI ChatGPT',
+          description: 'Your intelligent assistant powered by AI.',
+          send: 'Send',
+          history: 'History',
+        },
+        mn: {
+          home: 'Нүүр',
+          chatInterface: 'Чат интерфэйс',
+          settings: 'Тохиргоо',
+          title: 'KZ AI ChatGPT-д тавтай морил',
+          description: 'Таны ухаалаг туслагч AI.',
+          send: 'Илгээх',
+          history: 'Түүх',
+        }
+      };
+      const texts = langTexts[language] || langTexts.en;
+      document.getElementById('nav-home').textContent = texts.home;
+      document.getElementById('nav-chat-interface').textContent = texts.chatInterface;
+      document.getElementById('nav-settings').textContent = texts.settings;
+      document.getElementById('main-title').textContent = texts.title;
+      document.getElementById('main-description').textContent = texts.description;
+      document.getElementById('main-send').textContent = texts.send;
+      document.getElementById('main-history').textContent = texts.history;
+    }
+
+    const savedLanguage = localStorage.getItem('language') || 'en';
+    applyLanguage(savedLanguage);
+  </script>
+</body>
+</html>
